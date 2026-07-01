@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+import { useAuth } from '../../auth/hooks/useAuth.js'
 
 const Home = () => {
 
     const { loading, generateReport,reports } = useInterview()
+    const { user, handleLogout } = useAuth()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const resumeInputRef = useRef()
@@ -40,6 +42,16 @@ const Home = () => {
 
     return (
         <div className='home-page'>
+
+            <nav className='navbar'>
+            <span className='navbar__brand'>Interview <span className='highlight'>AI</span></span>
+            <div className='navbar__right'>
+                <span className='navbar__user'>👤 {user?.username}</span>
+                <button className='navbar__logout-btn' onClick={handleLogout}>
+                    Logout
+                </button>
+            </div>
+        </nav>
 
             {/* Page Header */}
             <header className='page-header'>
