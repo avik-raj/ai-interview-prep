@@ -28,7 +28,7 @@ if (req.file) {
         selfDescription,
         jobDescription
     })
-console.log(interViewReportByAi);
+
 interViewReportByAi.technicalQuestions =
   interViewReportByAi.technicalQuestions?.map((q) => {
     if (typeof q === "string") {
