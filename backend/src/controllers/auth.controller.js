@@ -36,19 +36,11 @@ async function registerUserController(req, res) {
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
     )
-
-    res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",   // HTTPS only in production
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    // "none" is required for cross-domain cookies
-    // "lax" is fine for local development (same domain)
-    maxAge: 24 * 60 * 60 * 1000   // 1 day in milliseconds
-})
-
+    
 
     res.status(201).json({
         message: "User registered successfully",
+        token: token,
         user: {
             id: user._id,
             username: user.username,
@@ -81,16 +73,9 @@ async function loginUserController(req, res) {
         { expiresIn: "1d" }
     )
 
-   res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",   // HTTPS only in production
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    // "none" is required for cross-domain cookies
-    // "lax" is fine for local development (same domain)
-    maxAge: 24 * 60 * 60 * 1000   // 1 day in milliseconds
-})
     res.status(200).json({
         message: "User loggedIn successfully.",
+        token: token, 
         user: {
             id: user._id,
             username: user.username,
