@@ -103,26 +103,48 @@ Return only the JSON object.
 }
 
 async function generatePdfFromHtml(htmlContent) {
-   const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu'
-    ]
-})
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" })
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ]
+    })
+
+    const page = await browser.newPage()
+
+    // Block external requests (fonts, images) that cause timeout on Render
+    await page.setRequestInterception(true)
+    page.on('request', (req) => {
+        const type = req.resourceType()
+        if (type === 'font' || type === 'image' || type === 'stylesheet') {
+            req.abort()   // block external resources
+        } else {
+            req.continue()
+        }
+    })
+
+    await page.setContent(htmlContent, {
+        waitUntil: "domcontentloaded",  // don't wait for network idle
+        timeout: 10000
+    })
 
     const pdfBuffer = await page.pdf({
-        format: "A4", margin: {
+        format: "A4",
+        margin: {
             top: "20mm",
             bottom: "20mm",
             left: "15mm",
             right: "15mm"
         }
     })
+
     await browser.close()
     return pdfBuffer
 }
