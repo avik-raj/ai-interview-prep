@@ -37,6 +37,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 You are an expert technical interviewer and career coach.
 
 Analyze the candidate's profile and generate an interview report.
+Follow the given steps strictly and give in the proper format which is written below without making any mistake.
 
 IMPORTANT RULES:
 
