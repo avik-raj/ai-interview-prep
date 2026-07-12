@@ -49,6 +49,8 @@ IMPORTANT RULES:
 6. The "title" field MUST contain the exact job title extracted from the job description.
 7. The "matchScore" field must be between 0 and 100.
 
+Do NOT return empty arrays. Every field must be populated with relevant content.
+
 
 technicalQuestions must contain:
 {
