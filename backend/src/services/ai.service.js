@@ -1,108 +1,125 @@
 const { GoogleGenAI } = require("@google/genai")
-const { z } = require("zod")
-const { zodToJsonSchema } = require("zod-to-json-schema")
 const puppeteer = require("puppeteer")
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
 })
 
-const interviewReportSchema = z.object({
-    matchScore: z.number().describe("A score between 0 and 100 indicating how well the candidate's profile matches the job describe"),
-    technicalQuestions: z.array(z.object({
-        question: z.string().describe("The technical question can be asked in the interview"),
-        intention: z.string().describe("The intention of interviewer behind asking this question"),
-        answer: z.string().describe("How to answer this question, what points to cover, what approach to take etc.")
-    })).describe("Technical questions that can be asked in the interview along with their intention and how to answer them"),
-    behavioralQuestions: z.array(z.object({
-        question: z.string().describe("The technical question can be asked in the interview"),
-        intention: z.string().describe("The intention of interviewer behind asking this question"),
-        answer: z.string().describe("How to answer this question, what points to cover, what approach to take etc.")
-    })).describe("Behavioral questions that can be asked in the interview along with their intention and how to answer them"),
-    skillGaps: z.array(z.object({
-        skill: z.string().describe("The skill which the candidate is lacking"),
-        severity: z.enum([ "low", "medium", "high" ]).describe("The severity of this skill gap, i.e. how important is this skill for the job and how much it can impact the candidate's chances")
-    })).describe("List of skill gaps in the candidate's profile along with their severity"),
-    preparationPlan: z.array(z.object({
-        day: z.number().describe("The day number in the preparation plan, starting from 1"),
-        focus: z.string().describe("The main focus of this day in the preparation plan, e.g. data structures, system design, mock interviews etc."),
-        tasks: z.array(z.string()).describe("List of tasks to be done on this day to follow the preparation plan, e.g. read a specific book or article, solve a set of problems, watch a video etc.")
-    })).describe("A day-wise preparation plan for the candidate to follow in order to prepare for the interview effectively"),
-    title: z.string().describe("The title of the job for which the interview report is generated"),
-})
-
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
-  const prompt = `
+    const prompt = `
 You are an expert technical interviewer and career coach.
 
-Analyze the candidate's profile and generate an interview report.
-Follow the given steps strictly and give in the proper format which is written below without making any mistake.
+Analyze the candidate profile against the job description and generate a detailed interview preparation report.
 
-IMPORTANT RULES:
-
-1. Return ONLY valid JSON.
-2. Do NOT return markdown.
-3. Do NOT return explanations.
-4. Do NOT return arrays of strings.
-5. Every array element must be a JSON object matching the schema and follow the schema strictly.
-6. The "title" field MUST contain the exact job title extracted from the job description.
-7. The "matchScore" field must be between 0 and 100.
-
-Do NOT return empty arrays. Every field must be populated with relevant content.
-
-
-technicalQuestions must contain:
-{
-  question: string,
-  intention: string,
-  answer: string
-}
-
-behavioralQuestions must contain:
-{
-  question: string,
-  intention: string,
-  answer: string
-}
-
-skillGaps must contain:
-{
-  skill: string,
-  severity: "low" | "medium" | "high"
-}
-
-preparationPlan must contain:
-{
-  day: number,
-  focus: string,
-  tasks: string[]
-}
-
-Candidate Information:
-
-Resume:
+CANDIDATE RESUME:
 ${resume}
 
-Self Description:
+SELF DESCRIPTION:
 ${selfDescription}
 
-Job Description:
+JOB DESCRIPTION:
 ${jobDescription}
 
-Return only the JSON object.
-`;
+STRICT INSTRUCTIONS:
+- Generate exactly 5 technical interview questions relevant to the job
+- Generate exactly 3 behavioral questions
+- Identify exactly 3 skill gaps
+- Create a 7 day preparation plan
+- Give an honest match score between 0 and 100
+- Extract the exact job title from the job description
+
+Return ONLY this exact JSON structure with real content. No markdown. No backticks. No extra text:
+{
+  "title": "exact job title from job description",
+  "matchScore": 75,
+  "technicalQuestions": [
+    {
+      "question": "write a real technical question here based on job requirements",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    },
+    {
+      "question": "write a real technical question here based on job requirements",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    },
+    {
+      "question": "write a real technical question here based on job requirements",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    },
+    {
+      "question": "write a real technical question here based on job requirements",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    },
+    {
+      "question": "write a real technical question here based on job requirements",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    }
+  ],
+  "behavioralQuestions": [
+    {
+      "question": "write a real behavioral question here",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    },
+    {
+      "question": "write a real behavioral question here",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    },
+    {
+      "question": "write a real behavioral question here",
+      "intention": "write why the interviewer asks this specific question",
+      "answer": "write a detailed answer covering all important points"
+    }
+  ],
+  "skillGaps": [
+    {
+      "skill": "write actual missing skill name",
+      "severity": "high"
+    },
+    {
+      "skill": "write actual missing skill name",
+      "severity": "medium"
+    },
+    {
+      "skill": "write actual missing skill name",
+      "severity": "low"
+    }
+  ],
+  "preparationPlan": [
+    { "day": 1, "focus": "topic name", "tasks": ["specific task 1", "specific task 2", "specific task 3"] },
+    { "day": 2, "focus": "topic name", "tasks": ["specific task 1", "specific task 2", "specific task 3"] },
+    { "day": 3, "focus": "topic name", "tasks": ["specific task 1", "specific task 2", "specific task 3"] },
+    { "day": 4, "focus": "topic name", "tasks": ["specific task 1", "specific task 2", "specific task 3"] },
+    { "day": 5, "focus": "topic name", "tasks": ["specific task 1", "specific task 2", "specific task 3"] },
+    { "day": 6, "focus": "topic name", "tasks": ["specific task 1", "specific task 2", "specific task 3"] },
+    { "day": 7, "focus": "topic name", "tasks": ["specific task 1", "specific task 2", "specific task 3"] }
+  ]
+}
+
+IMPORTANT: Replace every placeholder text with REAL content based on the candidate's resume and job description. Do NOT copy the placeholder text like "write a real technical question here" - replace it with actual questions and answers.
+`
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-3-flash-preview",
         contents: prompt,
         config: {
-            responseMimeType: "application/json",
-            responseSchema: zodToJsonSchema(interviewReportSchema),
+            responseMimeType: "application/json"
         }
     })
 
-    return JSON.parse(response.text)
+    // Clean response in case model adds backticks
+    let text = response.text.trim()
+    if (text.startsWith("```")) {
+        text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+    }
+
+    return JSON.parse(text)
 }
 
 async function generatePdfFromHtml(htmlContent) {
@@ -122,19 +139,18 @@ async function generatePdfFromHtml(htmlContent) {
 
     const page = await browser.newPage()
 
-    // Block external requests (fonts, images) that cause timeout on Render
     await page.setRequestInterception(true)
     page.on('request', (req) => {
         const type = req.resourceType()
         if (type === 'font' || type === 'image' || type === 'stylesheet') {
-            req.abort()   // block external resources
+            req.abort()
         } else {
             req.continue()
         }
     })
 
     await page.setContent(htmlContent, {
-        waitUntil: "domcontentloaded",  // don't wait for network idle
+        waitUntil: "domcontentloaded",
         timeout: 10000
     })
 
@@ -154,34 +170,50 @@ async function generatePdfFromHtml(htmlContent) {
 
 async function generateResumePdf({ resume, selfDescription, jobDescription }) {
 
-    const resumePdfSchema = z.object({
-        html: z.string().describe("The HTML content of the resume which can be converted to PDF using any library like puppeteer")
-    })
+    const prompt = `
+You are an expert resume writer.
 
-    const prompt = `Generate resume for a candidate with the following details:
-                        Resume: ${resume}
-                        Self Description: ${selfDescription}
-                        Job Description: ${jobDescription}
+Create a professional resume for this candidate tailored to the job description.
 
-                        the response should be a JSON object with a single field "html" which contains the HTML content of the resume which can be converted to PDF using any library like puppeteer.
-                        The resume should be tailored for the given job description and should highlight the candidate's strengths and relevant experience. The HTML content should be well-formatted and structured, making it easy to read and visually appealing.
-                        The content of resume should be not sound like it's generated by AI and should be as close as possible to a real human-written resume.
-                        you can highlight the content using some colors or different font styles but the overall design should be simple and professional.
-                        The content should be ATS friendly, i.e. it should be easily parsable by ATS systems without losing important information.
-                        The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
-                    `
+CANDIDATE RESUME:
+${resume}
+
+SELF DESCRIPTION:
+${selfDescription}
+
+JOB DESCRIPTION:
+${jobDescription}
+
+INSTRUCTIONS:
+- Tailor the resume specifically for the given job description
+- Highlight the most relevant skills and experience
+- Make it ATS friendly with clean formatting
+- Keep it 1-2 pages maximum
+- Use professional HTML with inline CSS only
+- Do not use external fonts or stylesheets
+- Make it visually clean and professional
+
+Return ONLY this JSON with no markdown and no backticks:
+{
+  "html": "complete HTML resume here with inline CSS styling"
+}
+`
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-3-flash-preview",
         contents: prompt,
         config: {
-            responseMimeType: "application/json",
-            responseSchema: zodToJsonSchema(resumePdfSchema),
+            responseMimeType: "application/json"
         }
     })
 
+    // Clean response in case model adds backticks
+    let text = response.text.trim()
+    if (text.startsWith("```")) {
+        text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+    }
 
-    const jsonContent = JSON.parse(response.text)
+    const jsonContent = JSON.parse(text)
     const pdfBuffer = await generatePdfFromHtml(jsonContent.html)
     return pdfBuffer
 }
