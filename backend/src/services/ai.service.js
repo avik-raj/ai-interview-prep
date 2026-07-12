@@ -92,7 +92,7 @@ Return only the JSON object.
 `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-3.0-flash",
+        model: "gemini-3.5-flash",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -170,7 +170,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
                     `
 
     const response = await ai.models.generateContent({
-        model: "gemini-3.0-flash",
+        model: "gemini-3.5-flash",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
