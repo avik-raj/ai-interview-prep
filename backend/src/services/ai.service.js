@@ -115,11 +115,34 @@ IMPORTANT: Replace every placeholder text with REAL content based on the candida
 
     // Clean response in case model adds backticks
     let text = response.text.trim()
-    if (text.startsWith("```")) {
-        text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
-    }
 
-    return JSON.parse(text)
+// Remove markdown backticks
+text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+
+// Find the outermost JSON object
+let depth = 0
+let start = -1
+let end = -1
+
+for (let i = 0; i < text.length; i++) {
+    if (text[i] === '{') {
+        if (depth === 0) start = i
+        depth++
+    } else if (text[i] === '}') {
+        depth--
+        if (depth === 0) {
+            end = i
+            break
+        }
+    }
+}
+
+if (start === -1 || end === -1) {
+    throw new Error("No valid JSON found in AI response")
+}
+
+text = text.substring(start, end + 1)
+return JSON.parse(text)
 }
 
 async function generatePdfFromHtml(htmlContent) {
