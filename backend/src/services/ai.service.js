@@ -146,6 +146,7 @@ return JSON.parse(text)
 }
 
 async function generatePdfFromHtml(htmlContent) {
+    const isWindows = process.platform === 'win32'
     const browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -154,9 +155,8 @@ async function generatePdfFromHtml(htmlContent) {
             '--disable-dev-shm-usage',
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-gpu'
+            '--disable-gpu',
+            ...(isWindows ? [] : ['--no-zygote', '--single-process'])
         ]
     })
 
